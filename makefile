@@ -1,15 +1,27 @@
 all: writeup.pdf
 
-%.pdf: %.md %-library.bib
+%.pdf: %.md
 	pandoc -S \
 		-o $@ \
 		-V geometry:margin=1in\
-		--filter pandoc-citeproc \
 		--template=paper-template.latex \
 		$<
+%.tex: %.md
+	pandoc -S \
+		-o .$@ \
+		-V geometry:margin=1in\
+		--template=paper-template.latex \
+		$<
+	perl latexindent.pl .$@ > $@
+	rm .$@
 
-watch:
+watch: watch-all
+
+watch-%:
 	while true; do \
-		make --no-print-directory all; \
+		make --no-print-directory $*; \
 		fswatch --event Updated -x -1 ./*.md ./*.bib; \
 	done
+
+clean:
+	rm *.pdf
